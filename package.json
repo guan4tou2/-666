@@ -1,8 +1,13 @@
 {
-  "name": "laotie",
-  "displayName": "LaoTie",
-  "description": "",
+  "name": "laotie666",
+  "displayName": "LaoTie666",
+  "description": "老鐵語法檢查器，沒毛病！",
   "version": "0.0.1",
+  "publisher": "guan4tou2",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/guan4tou2/LaoTie666"
+  },
   "engines": {
     "vscode": "^1.96.0"
   },
