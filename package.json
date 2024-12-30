@@ -31,7 +31,7 @@
         {
           "command": "vscext.LaoTie",
           "group": "navigation",
-          "when": "editorIsOpen && (editorLangId == 'javascript' || editorLangId == 'typescript' || editorLangId == 'python' || editorLangId == 'java' || editorLangId == 'cpp' || editorLangId == 'csharp')"
+          "when": "editorIsOpen"
         }
       ]
     }

@@ -11,7 +11,7 @@ const fs = require('fs');
 /**
  * @param {vscode.ExtensionContext} context
  */
-function activate(context) {
+async function activate(context) {
     console.log('Congratulations, your extension "vscext" is now active!');
 
     context.subscriptions.push(vscode.commands.registerCommand('vscext.LaoTie', async function () {
@@ -23,31 +23,17 @@ function activate(context) {
             }
 
             const document = editor.document;
-            const languageId = document.languageId;
+            
+            // 先觸發一次語言服務的驗證
+            await vscode.commands.executeCommand('editor.action.triggerParameterHints');
+            
+            // 等待一下讓語言服務有時間進行驗證
+            setTimeout(async () => {
+                await checkDocument(document);
+            }, 500);
 
-            // 根據不同語言執行相應的語法檢查
-            switch (languageId) {
-                case 'javascript':
-                case 'typescript':
-                    checkJavaScript(document);
-                    break;
-                case 'python':
-                    checkPython(document);
-                    break;
-                case 'java':
-                    checkJava(document);
-                    break;
-                case 'cpp':
-                    checkCPP(document);
-                    break;
-                case 'csharp':
-                    checkCSharp(document);
-                    break;
-                default:
-                    vscode.window.showInformationMessage(`暫不支持 ${languageId} 語言的語法檢查`);
-            }
         } catch (error) {
-            vscode.window.showErrorMessage(`執行時發生錯誤: ${error.message}`);
+            vscode.window.showErrorMessage('老鐵錯啦！');
             console.error(error);
         }
     }));
@@ -114,74 +100,24 @@ function getRandomColor() {
     return colors[Math.floor(Math.random() * colors.length)];
 }
 
-// 各語言的檢查函數
-function checkJavaScript(document) {
+// 修改語法檢查函數
+async function checkDocument(document) {
     const editor = vscode.window.activeTextEditor;
-    try {
-        Function(document.getText());
+    
+    // 獲取診斷信息
+    const diagnostics = await vscode.languages.getDiagnostics(document.uri);
+    
+    // 檢查是否有錯誤
+    const hasErrors = diagnostics.some(diagnostic => 
+        diagnostic.severity === vscode.DiagnosticSeverity.Error
+    );
+
+    if (hasErrors) {
+        vscode.window.showErrorMessage('老鐵錯啦！');
+    } else {
         vscode.window.showInformationMessage('沒毛病阿老鐵！');
         show666Effect(editor);
-    } catch (error) {
-        vscode.window.showErrorMessage('老鐵錯啦！');
     }
-}
-
-function checkPython(document) {
-    const editor = vscode.window.activeTextEditor;
-    const filePath = document.uri.fsPath;
-    exec(`python -m py_compile "${filePath}"`, (error) => {
-        if (error) {
-            vscode.window.showErrorMessage('老鐵錯啦！');
-        } else {
-            vscode.window.showInformationMessage('沒毛病阿老鐵！');
-            show666Effect(editor);
-        }
-    });
-}
-
-function checkJava(document) {
-    const editor = vscode.window.activeTextEditor;
-    const filePath = document.uri.fsPath;
-    const tempDir = path.dirname(filePath);
-    
-    exec(`javac -Xlint:all "${filePath}" -d "${tempDir}"`, (error) => {
-        if (error) {
-            vscode.window.showErrorMessage('老鐵錯啦！');
-        } else {
-            vscode.window.showInformationMessage('沒毛病阿老鐵！');
-            show666Effect(editor);
-            const className = path.basename(filePath, '.java') + '.class';
-            fs.unlink(path.join(tempDir, className), () => {});
-        }
-    });
-}
-
-function checkCPP(document) {
-    const editor = vscode.window.activeTextEditor;
-    const filePath = document.uri.fsPath;
-    exec(`g++ -fsyntax-only "${filePath}"`, (error) => {
-        if (error) {
-            vscode.window.showErrorMessage('老鐵錯啦！');
-        } else {
-            vscode.window.showInformationMessage('沒毛病阿老鐵！');
-            show666Effect(editor);
-        }
-    });
-}
-
-function checkCSharp(document) {
-    const editor = vscode.window.activeTextEditor;
-    const filePath = document.uri.fsPath;
-    exec(`csc /nologo /t:module "${filePath}"`, (error) => {
-        if (error) {
-            vscode.window.showErrorMessage('老鐵錯啦！');
-        } else {
-            vscode.window.showInformationMessage('沒毛病阿老鐵！');
-            show666Effect(editor);
-            const moduleName = path.basename(filePath, '.cs') + '.netmodule';
-            fs.unlink(path.join(path.dirname(filePath), moduleName), () => {});
-        }
-    });
 }
 
 // This method is called when your extension is deactivated
